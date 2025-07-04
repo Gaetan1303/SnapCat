@@ -1,0 +1,29 @@
+Explication du code
+
+    Page d'accueil (index.php) :
+
+        Utilise readdir() pour lire tous les fichiers dans le dossier uploads/.
+
+        Affiche chaque photo dans un format simple avec une balise <img>.
+
+    Formulaire d'upload (upload_form.html) :
+
+        Un formulaire HTML avec les champs auteur et photo.
+
+        L'upload est envoyé à upload.php.
+
+    Traitement de l'upload (upload.php) :
+
+        Vérifie si les données du formulaire sont présentes.
+
+        Le fichier est déplacé dans le dossier uploads/ avec un nom formaté selon la spécification (date-auteur-filename.extension).
+
+        Si l'upload réussit, l'utilisateur est redirigé vers index.php.
+
+Tests
+
+    Pour tester l'application, vous pouvez exécuter le serveur PHP avec la commande suivante :
+
+php -S localhost:8000
+
+Visitez http://localhost:8000/upload_form.html pour télécharger des photos et http://localhost:8000/index.php pour voir les photos publiées.

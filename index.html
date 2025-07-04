@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+    import login from './login.php';
+    import db from './db.php';
+    import upload from './upload.php';
+    import { getSnaps, addSnap } from './snap.php';
+<head>
+    <meta charset="UTF-8">
+    <title>SnapCat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f7f7f7;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background: #ffcc00;
+            padding: 20px;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            color: #333;
+        }
+        main {
+            max-width: 500px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);  
+            padding: 30px;
+        }
+        .snap-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .snap-form input[type="file"] {
+            border: 1px solid #ccc;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        .snap-form input[type="text"] {
+            border: 1px solid #ccc;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        .snap-form button {
+            background: #ffcc00;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .snap-form button:hover {
+            background: #ffb300;
+        }
+        .preview {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .preview img {
+            max-width: 100%;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SnapCat 🐱</h1>
+        <p>Partage tes plus belles photos de chats !</p>
+    </header>
+    <main>
+        <form class="snap-form" id="snapForm" action="upload.php" method="POST" enctype="multipart/form-data">
+            <label for="photo">Choisis une photo de ton chat :</label>
+            <input type="file" id="photo" name="photo" accept="image/*" required>
+            <label for="caption">Légende :</label>
+            <input type="text" id="caption" name="caption" maxlength="100" placeholder="Une légende sympa..." required>
+            <button type="submit">Envoyer</button>
+        </form>
+        <div class="preview" id="preview"></div>
+    </main>
+    <script>
+        const photoInput = document.getElementById('photo');
+        const previewDiv = document.getElementById('preview');
+        const snapForm = document.getElementById('snapForm');
+
+        photoInput.addEventListener('change', function() {
+            previewDiv.innerHTML = '';
+            const file = photoInput.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    previewDiv.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        snapForm.addEventListener('submit', function(e) {
+            // e.preventDefault(); // <-- à retirer ou commenter pour permettre l'envoi réel
+            // alert('Photo envoyée ! (fonctionnalité à implémenter)');
+            // snapForm.reset();
+            // previewDiv.innerHTML = '';
+        });
+    </script>
+</body>
+</html>
