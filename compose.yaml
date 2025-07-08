@@ -6,9 +6,15 @@ services:
     depends_on:
       - db
   db:
-    image: postgres
+    image: mysql:8.0
+    ports:
+      - "3306:3306" 
     environment:
-      POSTGRES_USER: snapcatuser
-      POSTGRES_PASSWORD: secret
-      POSTGRES_DB: snapcatdb
-      
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: snapcatdb 
+    volumes:
+      - db_data:/var/lib/mysql 
+
+
+volumes:
+  db_data:
