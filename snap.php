@@ -32,6 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $conn->close();
 ?>
+
 <form method="POST" enctype="multipart/form-data">
     <input type="number" name="sender_id" placeholder="Votre ID" required>
     <input type="number" name="receiver_id" placeholder="ID du destinataire" required>

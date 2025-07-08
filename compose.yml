@@ -1,0 +1,40 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html # Monte le répertoire courant de l'hôte dans /var/www/html du conteneur web
+    environment:
+      MYSQL_HOST: db
+      MYSQL_USER: snapcatuser
+      MYSQL_PASSWORD: snapcatpass
+      MYSQL_DATABASE: snapcat
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: snapcat
+      MYSQL_USER: snapcatuser
+      MYSQL_PASSWORD: snapcatpass
+    ports:
+      - "3307:3306" # Mappe le port 3306 du conteneur au port 3307 de l'hôte
+    volumes:
+      - db_data:/var/lib/mysql # Utilise le volume nommé 'db_data' pour persister les données MySQL
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8081:80" # Accès via http://localhost:8081
+    environment:
+      PMA_HOST: db # Nom du service de la base de données
+      MYSQL_ROOT_PASSWORD: rootpassword # Mot de passe root de MySQL
+      PMA_PORT: 3306
+    depends_on:
+      - db
+
+volumes: # Section de déclaration des volumes nommés
+  db_data: # Déclare le volume nommé 'db_data'

@@ -1,10 +1,11 @@
--- Table pour les utilisateurs
+-- Table pour les utilisateurs (mise à jour avec la colonne 'role')
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     Nom VARCHAR(50) NOT NULL UNIQUE,
     Email VARCHAR(100) NOT NULL UNIQUE,
     Mot_de_passe VARCHAR(255) NOT NULL,
-    photo_de_profil VARCHAR(255) -- chemin de l'image de profil
+    photo_de_profil VARCHAR(255), -- chemin de l'image de profil
+    role ENUM('user', 'administrateur') DEFAULT 'user' NOT NULL -- Ajout de la colonne 'role'
 );
 
 -- Table pour les messages (snapcat)

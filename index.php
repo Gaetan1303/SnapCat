@@ -1,10 +1,12 @@
 <?php
+
+
 session_start();
 if (!isset($_SESSION['user'])) {
     header('Location: login.php');
     exit;
 }
-require 'db.php'; // Assurez-vous que ce fichier contient la connexion à la base de données
+ // Assurez-vous que ce fichier contient la connexion à la base de données
 
 // API pour enregistrer les profils de chats
 $chats = [];     

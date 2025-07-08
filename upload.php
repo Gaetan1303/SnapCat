@@ -11,8 +11,12 @@ error_reporting(E_ALL);
 
 require 'db.php';
 
-if ($conn->connect_error) {
-    die("La connexion a échoué : " . $conn->connect_error);
+// Connexion à la base de données avec PDO
+try {
+    $conn = new PDO('mysql:host=localhost;dbname=nom_de_la_base_de_donnees;charset=utf8', 'utilisateur', 'motdepasse');
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("La connexion a échoué : " . $e->getMessage());
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -53,28 +57,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Erreur lors de l'upload de la photo.");
     }
 
-    // Enregistrer les données dans la table chats
-    $stmt = $conn->prepare("INSERT INTO chats (nom, numero_puce, age, sexe, photo, description, localisation, interets, caracteristiques) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssissssss", $nom, $numero_puce, $age, $sexe, $photoPath, $description, $localisation, $interets, $caracteristiques);
+    // Enregistrer les données dans la table 'chats' avec PDO
+    try {
+        $sql1 = "INSERT INTO chats (nom, numero_puce, age, sexe, photo, description, localisation, interets, caracteristiques) 
+                 VALUES (:nom, :numero_puce, :age, :sexe, :photo, :description, :localisation, :interets, :caracteristiques)";
+        $stmt1 = $conn->prepare($sql1);
 
-    if ($stmt->execute()) {
+        // Lier les paramètres
+        $stmt1->bindParam(':nom', $nom);
+        $stmt1->bindParam(':numero_puce', $numero_puce);
+        $stmt1->bindParam(':age', $age);
+        $stmt1->bindParam(':sexe', $sexe);
+        $stmt1->bindParam(':photo', $photoPath);
+        $stmt1->bindParam(':description', $description);
+        $stmt1->bindParam(':localisation', $localisation);
+        $stmt1->bindParam(':interets', $interets);
+        $stmt1->bindParam(':caracteristiques', $caracteristiques);
+
+        // Exécution de la requête
+        $stmt1->execute();
         echo "Profil ajouté avec succès !<br>";
-    } else {
-        echo "Erreur lors de l'enregistrement du profil : " . $stmt->error;
+    } catch (PDOException $e) {
+        die("Erreur lors de l'enregistrement du profil : " . $e->getMessage());
     }
-    $stmt->close();
 
-    // Enregistrer la photo et la légende dans la table snaps
-    $stmt2 = $conn->prepare("INSERT INTO snaps (photo, caption) VALUES (?, ?)");
-    $stmt2->bind_param("ss", $photoPath, $caption);
+    // Enregistrer la photo et la légende dans la table 'snaps' avec PDO
+    try {
+        $sql2 = "INSERT INTO snaps (photo, caption) VALUES (:photo, :caption)";
+        $stmt2 = $conn->prepare($sql2);
 
-    if ($stmt2->execute()) {
+        // Lier les paramètres
+        $stmt2->bindParam(':photo', $photoPath);
+        $stmt2->bindParam(':caption', $caption);
+
+        // Exécution de la requête
+        $stmt2->execute();
         echo "Photo envoyée avec succès !";
-    } else {
-        echo "Erreur lors de l'enregistrement de la photo : " . $stmt2->error;
+    } catch (PDOException $e) {
+        die("Erreur lors de l'enregistrement de la photo : " . $e->getMessage());
     }
-    $stmt2->close();
 
-    $conn->close();
+    // Fermer la connexion PDO
+    $conn = null;
 }
 ?>
