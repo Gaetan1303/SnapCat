@@ -1,1 +1,74 @@
-# This file is intentionally left blank.
+# 1. Version control
+.git/
+.gitignore
+.svn/
+.hg/
+
+# 2. IDE/editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 3. Environment and secrets
+.env*
+*.env
+*.pem
+*.key
+*.crt
+config.local.*
+*.local.yml
+
+# 4. Development/build artifacts
+dist/
+build/
+out/
+tmp/
+temp/
+*.tmp
+local/
+.local/
+debug/
+*.log
+
+# 5. Test and coverage files
+test/
+tests/
+.pytest_cache/
+.coverage
+__pycache__/
+*.pyc
+*.pyo
+
+# 6. Language-specific (not detected, but for completeness)
+node_modules/
+npm-debug.log
+yarn-debug.log
+/vendor/
+*.test
+.go-cache/
+target/
+*.class
+.gradle/
+
+# 7. Documentation and project files
+docs/
+*.md
+README*
+
+# 8. Docker and Compose files
+Dockerfile*
+docker-compose*
+.dockerignore
+compose.yml
+
+# 9. Project-specific
+# Ignore empty directories (uploads/cats/ and SnapCat/ are empty, but keep uploads/ for runtime use)
+# If uploads/ is used for runtime file storage, do NOT ignore it. If not, add: uploads/
+# For now, do not ignore uploads/ to allow runtime file storage.
+
+# 10. Miscellaneous
+*.bak
+*.old
+
+# End of .dockerignore
