@@ -1,5 +1,4 @@
 <?php
-
 // Détection automatique de l'environnement
 // Ces variables sont lues depuis les variables d'environnement Docker Compose
 // ou utilisent des valeurs par défaut si elles ne sont pas définies.
@@ -26,10 +25,13 @@ try {
 } catch (PDOException $e) {
     // Si une exception PDO est lancée (erreur de connexion ou de requête)
     // Affiche un message d'erreur et arrête le script.
-    // error_log est utilisé pour enregistrer l'erreur côté serveur,
-    // et die() pour afficher un message à l'utilisateur (utile en développement).
+    // error_log est utilisé pour enregistrer l'erreur côté serveur.
     error_log("Erreur de connexion PDO dans bd.php : " . $e->getMessage());
-    die("Erreur de connexion à la base de données : " . $e->getMessage());
+    // AJOUT POUR LE DÉBOGAGE : Affiche le message d'erreur exact directement dans le navigateur
+    echo "<h1>Erreur fatale de connexion à la base de données !</h1>";
+    echo "<p>Veuillez vérifier votre configuration et la disponibilité de MySQL.</p>";
+    echo "<p><strong>Détails de l'erreur :</strong> " . htmlspecialchars($e->getMessage()) . "</p>";
+    die(); // Arrête l'exécution du script après avoir affiché l'erreur.
 }
 
 // À ce stade, si le script n'a pas été arrêté par die(),
