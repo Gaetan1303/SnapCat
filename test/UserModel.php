@@ -13,21 +13,24 @@ class UserModel {
      *
      * @param string $email L'adresse e-mail de l'utilisateur.
      * @param string $password Le mot de passe non haché.
-     * @return array|false Les informations de l'utilisateur (id, email, username) si la connexion est réussie, false sinon.
+     * @return array|false Les informations de l'utilisateur si la connexion est réussie, false sinon.
      */
-    public function login(string $email, string $password) {
-        // Requête pour obtenir l'utilisateur par email. Inclut 'username' pour la session.
+    public function login($email, $password) {
+        // Requête SQL pour obtenir l'utilisateur correspondant à l'email
+        // Récupère aussi le nom d'utilisateur si tu veux l'utiliser après la connexion
         $stmt = $this->conn->prepare("SELECT id, email, username, password FROM users WHERE email = :email");
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
         $stmt->execute();
 
+        // Vérifie si un utilisateur existe
         $user = $stmt->fetch();
 
-        // Vérifie si un utilisateur a été trouvé et si le mot de passe correspond.
         if ($user && password_verify($password, $user['password'])) {
-            return $user; // Retourne les infos de l'utilisateur connecté
+            // Si le mot de passe est correct, retourne les informations de l'utilisateur
+            return $user;
         } else {
-            return false; // Échec de la connexion
+            // Si les informations sont incorrectes, retourne false
+            return false;
         }
     }
 
@@ -39,7 +42,7 @@ class UserModel {
      */
     public function userExists(string $email): bool {
         $stmt = $this->conn->prepare("SELECT COUNT(*) FROM users WHERE email = :email");
-        $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+        $stmt->bindParam(':email', $email, PDO::PARAM_STR); // Spécifier le type est plus robuste
         $stmt->execute();
         return $stmt->fetchColumn() > 0;
     }
@@ -52,22 +55,25 @@ class UserModel {
      * @param string $hashedPassword Le mot de passe de l'utilisateur, qui DOIT être déjà haché.
      * @return bool Vrai si l'insertion est réussie, faux en cas d'échec ou d'exception.
      */
+    // --- MODIFICATION MAJEURE ICI : Ajout du paramètre $username ---
     public function registerUser(string $email, string $username, string $hashedPassword): bool {
         try {
-            // Inclut 'username' dans la requête INSERT car il est désormais requis.
+            // Prépare la requête SQL d'insertion, incluant la colonne 'username'
             $sql = "INSERT INTO users (email, username, password) VALUES (:email, :username, :password)";
             $stmt = $this->conn->prepare($sql);
 
+            // Lie les paramètres aux valeurs, en spécifiant le type de données
             $stmt->bindParam(':email', $email, PDO::PARAM_STR);
-            $stmt->bindParam(':username', $username, PDO::PARAM_STR); // Liaison pour 'username'
+            $stmt->bindParam(':username', $username, PDO::PARAM_STR); // Liaison du username
             $stmt->bindParam(':password', $hashedPassword, PDO::PARAM_STR);
 
+            // Exécute la requête préparée.
             return $stmt->execute();
 
         } catch (PDOException $e) {
-            // Loggue l'erreur détaillée pour le débogage côté serveur.
+            // En cas d'erreur lors de l'insertion, journalise l'erreur
             error_log("Erreur PDO lors de l'enregistrement de l'utilisateur: " . $e->getMessage());
-            // Retourne false pour indiquer l'échec à l'appelant.
+            // Retourne false pour indiquer l'échec sans exposer les détails de l'erreur.
             return false;
         }
     }

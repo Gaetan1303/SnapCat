@@ -1,65 +1,63 @@
 <?php
-// login.php - Page de connexion des utilisateurs
+require_once 'db.php'; // Inclut le fichier qui initialise $conn comme un objet PDO
 
-session_start(); // Démarre la session PHP, doit être la première chose dans le script.
+session_start(); // Démarre la session
 
-// Inclusion de la connexion à la base de données (définit $conn)
-require_once 'db.php';
-
-// Si l'utilisateur est déjà connecté (vérifié par $_SESSION['user_id']), redirige vers l'accueil.
-if (isset($_SESSION['users'])) {
+// Si l'utilisateur est déjà connecté, redirigez-le vers la page d'accueil
+// NOTE: Vérifie si 'user_id' est défini en session pour une meilleure cohérence
+if (isset($_SESSION['user_id'])) {
     header('Location: index.php');
     exit;
 }
 
-// Inclusion de la classe UserModel pour les opérations liées aux utilisateurs.
+// Inclusion de la classe UserModel
 require_once 'UserModel.php';
 
-$message = ''; // Variable pour stocker les messages d'erreur/succès à afficher.
+$message = ''; // Variable pour stocker les messages d'erreur ou de succès
 
-// Vérification de la validité de la connexion PDO avant d'instancier UserModel.
+// --- Vérification et instanciation du UserModel ---
+// S'assure que $conn est bien un objet PDO avant de l'utiliser.
+// C'est crucial pour éviter l'erreur "Argument #1 ($conn) must be of type PDO, string given".
 if (!$conn instanceof PDO) {
-    error_log("Erreur critique dans login.php: La variable \$conn n'est pas un objet PDO.");
-    die('<p style="color: red;">Erreur interne du serveur. Impossible de se connecter à la base de données.</p>');
+    // Si la connexion n'est pas valide, on loggue l'erreur et arrête le script.
+    // Le message générique est pour l'utilisateur, l'erreur détaillée est dans les logs via db.php.
+    error_log("Erreur critique dans login.php: La connexion PDO n'est pas valide.");
+    die('<p style="color: red;">Erreur interne du serveur. Veuillez réessayer plus tard.</p>');
 }
 
-// Instanciation de UserModel en lui passant l'objet PDO $conn.
-$userModel = new UserModel($conn);
+// Instanciation de UserModel en lui passant l'objet PDO $conn
+// --- C'EST LA LIGNE CLÉ QUI ÉTAIT MAL CONSTRUITE ---
+$userModel = new UserModel($conn); // Passer l'objet $conn ici, pas $email
 
-// Traitement de la soumission du formulaire de connexion (méthode POST).
+// Traitement de la soumission du formulaire de CONNEXION
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Nettoyage et validation des entrées.
+    // Nettoyage des entrées utilisateur
     $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
     $password = $_POST['password'] ?? '';
 
-    // Validation des champs côté serveur.
+    // Validation simple
     if (empty($email) || empty($password)) {
         $message = '<p style="color: red;">Veuillez remplir tous les champs.</p>';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $message = '<p style="color: red;">L\'adresse e-mail n\'est pas valide.</p>';
     } else {
         try {
-            // Tente de connecter l'utilisateur via la méthode login du UserModel.
+            // Connexion
             $loggedInUser = $userModel->login($email, $password);
-
             if ($loggedInUser) {
-                // Connexion réussie : Stocke l'ID et le nom d'utilisateur (ou l'email si username n'existe pas) en session.
-                $_SESSION['users'] = [
-                    "user_id" => $loggedInUser["id"],
-                    "username" => $loggedInUser['username'],
-                    "email" => $loggedInUser['email']
-                ];
+                // Stocke l'ID et le nom d'utilisateur (ou email) dans la session
+                $_SESSION['user_id'] = $loggedInUser['id'];
+                $_SESSION['user'] = $loggedInUser['username'] ?? $loggedInUser['email']; // Préférer username si disponible
 
-                // Redirige vers la page d'accueil après une connexion réussie.
-                header('Location: index.php');
+                header('Location: index.php'); // Redirige vers la page d'accueil
                 exit;
             } else {
-                // Identifiants incorrects.
-                $message = '<p style="color: red;">Email ou mot de passe incorrect.</p>';
+                $message = '<p style="color: red;">Identifiants incorrects. Veuillez réessayer.</p>';
             }
         } catch (Throwable $th) {
-            // Capture et journalise toute exception inattendue lors de la tentative de connexion.
+            // Capture et loggue toutes les exceptions inattendues lors du processus de login
             error_log("Erreur inattendue lors de la connexion dans login.php: " . $th->getMessage());
+            // var_dump(''. $th->getMessage()); // Ligne de débogage à supprimer
             $message = '<p style="color: red;">Une erreur est survenue lors de la connexion. Veuillez réessayer plus tard.</p>';
         }
     }
@@ -139,9 +137,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 16px;
             cursor: pointer;
             transition: background-color 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
+            text-decoration: none; /* Pour le lien */
+            display: inline-block; /* Pour le lien */
+            text-align: center; /* Pour le lien */
         }
         button {
             background-color: #007bff;
@@ -165,7 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container">
         <h2>Bienvenue sur SnapCat</h2>
         <?php
-        // Affiche le message de succès si redirection depuis register.php
+        // Affiche les messages de succès d'inscription si redirection depuis register.php
         if (isset($_GET['registration']) && $_GET['registration'] === 'success') {
             echo '<div class="message success"><p>Inscription réussie ! Vous pouvez maintenant vous connecter.</p></div>';
         }
