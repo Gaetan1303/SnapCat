@@ -1,4 +1,5 @@
 <?php
+require_once 'db.php';
 
 session_start(); // Démarre la session
 
@@ -9,16 +10,15 @@ if (isset($_SESSION['user'])) {
 }
 
 // Inclusion de la classe UserModel
-// Assurez-vous que le chemin est correct (ex: 'UserModel.php' si dans le même dossier, ou 'models/UserModel.php')
 require_once 'UserModel.php';
 
 $message = ''; // Variable pour stocker les messages d'erreur ou de succès
 
-// Traitement de la soumission du formulaire
+// Traitement de la soumission du formulaire de CONNEXION
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Nettoyage des entrées utilisateur
     $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
-    $password = $_POST['password'] ?? ''; // Le mot de passe ne doit pas être filtré avec SANITIZE_STRING car cela pourrait modifier des caractères spéciaux légitimes. Il sera haché.
+    $password = $_POST['password'] ?? '';
 
     // Validation simple
     if (empty($email) || empty($password)) {
@@ -27,34 +27,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = '<p style="color: red;">L\'adresse e-mail n\'est pas valide.</p>';
     } else {
         try {
-            $userModel = new UserModel();
+            $userModel = new UserModel($email); // Passer $db ou une connexion PDO si UserModel en a besoin
 
-            // Vérifier si c'est une demande d'inscription (signup) ou de connexion (login)
-            if (isset($_POST['action']) && $_POST['action'] === 'signup') {
-                // Inscription
-                if ($userModel->userExists($email)) {
-                    $message = '<p style="color: red;">Cet e-mail est déjà enregistré. Veuillez vous connecter ou utiliser un autre e-mail.</p>';
-                } else {
-                    $registered = $userModel->signup($email, $password);
-                    if ($registered) {
-                        // Inscription réussie, connectez l'utilisateur automatiquement
-                        $_SESSION['user'] = $email;
-                        header('Location: index.php');
-                        exit;
-                    } else {
-                        $message = '<p style="color: red;">Erreur lors de l\'inscription. Veuillez réessayer.</p>';
-                    }
-                }
+            // Connexion
+            $loggedInUser = $userModel->login($email, $password);
+            if ($loggedInUser) {
+                $_SESSION['user'] = $loggedInUser; // Stocke l'email de l'utilisateur dans la session
+                header('Location: index.php'); // Redirige vers la page d'accueil
+                exit;
             } else {
-                // Connexion (action par défaut si non spécifié ou si 'login')
-                $loggedInUser = $userModel->login($email, $password);
-                if ($loggedInUser) {
-                    $_SESSION['user'] = $loggedInUser; // Stocke l'email de l'utilisateur dans la session
-                    header('Location: index.php'); // Redirige vers la page d'accueil
-                    exit;
-                } else {
-                    $message = '<p style="color: red;">Identifiants incorrects. Veuillez réessayer.</p>';
-                }
+                $message = '<p style="color: red;">Identifiants incorrects. Veuillez réessayer.</p>';
             }
         } catch (Throwable $th) {
             // Capture les erreurs d'instanciation de UserModel (ex: problème de connexion à la DB)
@@ -64,3 +46,125 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnapCat - Connexion</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            color: white;
+        }
+        .message p {
+            margin: 0;
+        }
+        .message.error {
+            background-color: #f44336;
+        }
+        .message.success {
+            background-color: #4CAF50;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        input[type="email"],
+        input[type="password"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        button, .register-link {
+            flex: 1;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-decoration: none; /* Pour le lien */
+            display: inline-block; /* Pour le lien */
+            text-align: center; /* Pour le lien */
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .register-link {
+            background-color: #28a745;
+            color: white;
+            border: 1px solid #28a745;
+        }
+        .register-link:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Bienvenue sur SnapCat</h2>
+        <?php if (!empty($message)): ?>
+            <div class="message <?php echo (strpos($message, 'red') !== false) ? 'error' : 'success'; ?>">
+                <?php echo $message; ?>
+            </div>
+        <?php endif; ?>
+
+        <form action="login.php" method="POST">
+            <div class="form-group">
+                <label for="email">E-mail :</label>
+                <input type="email" id="email" name="email" required autocomplete="email">
+            </div>
+            <div class="form-group">
+                <label for="password">Mot de passe :</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password">
+            </div>
+            <div class="button-group">
+                <button type="submit">Connexion</button>
+                <a href="register.php" class="register-link">S'inscrire</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,6 +1,6 @@
-CREATE DATABASE snapcat;
-CREATE USER 'snapcatuser'@'localhost' IDENTIFIED BY 'snapcatpass';
-GRANT ALL PRIVILEGES ON snapcat.* TO 'snapcatuser'@'localhost';
+CREATE DATABASE snapcatdb;
+CREATE USER 'snapcatuser'@'127.0.0.1' IDENTIFIED BY 'snapcatpass';
+GRANT ALL PRIVILEGES ON snapcat.* TO 'snapcatuser'@'127.0.0.1';
 FLUSH PRIVILEGES;
 EXIT;
 

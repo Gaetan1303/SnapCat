@@ -1,113 +1,69 @@
 <?php
+// UserModel.php - Gestion des utilisateurs
 
-session_start(); // Démarre la session
+class UserModel {
+    public PDO $conn;
+    function __construct(PDO $conn) {
+        $this->conn = $conn;
+    }
 
-// Si l'utilisateur est déjà connecté, redirigez-le vers la page d'accueil
-if (isset($_SESSION['user'])) {
-    header('Location: index.php');
-    exit;
-}
+    public function login($email, $password) {
 
-// Inclusion de la classe UserModel
-// Assurez-vous que le chemin est correct (ex: 'UserModel.php' si dans le même dossier, ou 'models/UserModel.php')
-require_once 'UserModel.php';
+        // Requête SQL pour obtenir l'utilisateur correspondant à l'email
+        $stmt = $this->conn->prepare("SELECT id, email, password FROM users WHERE email = :email");
+        $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+        $stmt->execute();
 
-$message = ''; // Variable pour stocker les messages d'erreur ou de succès
+        // Vérifie si un utilisateur existe
+        $user = $stmt->fetch();
 
-// Traitement de la soumission du formulaire
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Nettoyage des entrées utilisateur
-    $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
-    $password = $_POST['password'] ?? ''; // Le mot de passe ne doit pas être filtré avec SANITIZE_STRING car cela pourrait modifier des caractères spéciaux légitimes. Il sera haché.
+        if ($user && password_verify($password, $user['password'])) {
+            // Si le mot de passe est correct, retourne les informations de l'utilisateur
+            return $user;
+        } else {
+            // Si les informations sont incorrectes, retourne false
+            return false;
+        }
+    }
 
-    // Validation simple
-    if (empty($email) || empty($password)) {
-        $message = '<p style="color: red;">Veuillez remplir tous les champs.</p>';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $message = '<p style="color: red;">L\'adresse e-mail n\'est pas valide.</p>';
-    } else {
+    public function userExists(string $email){
+        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM users WHERE email = :email");
+        $stmt->bindParam(':email', $email);
+        $stmt->execute();
+        return $stmt->fetchColumn() > 0;
+    }
+ /**
+     * Enregistre un nouvel utilisateur dans la base de données.
+     *
+     * @param string $email L'adresse e-mail du nouvel utilisateur.
+     * @param string $hashedPassword Le mot de passe de l'utilisateur, qui DOIT être déjà haché.
+     * @return bool Vrai si l'insertion est réussie, faux en cas d'échec ou d'exception.
+     */
+    public function registerUser($email, $hashedPassword) {
         try {
-            $userModel = new UserModel();
+            // Prépare la requête SQL d'insertion.
+            // Utilisez des placeholders nommés (:email, :password) pour la sécurité.
+            $stmt = $this->conn->prepare("INSERT INTO users (email, password) VALUES (:email, :password)");
 
-            // Vérifier si c'est une demande d'inscription (signup) ou de connexion (login)
-            if (isset($_POST['action']) && $_POST['action'] === 'signup') {
-                // Inscription
-                if ($userModel->userExists($email)) {
-                    $message = '<p style="color: red;">Cet e-mail est déjà enregistré. Veuillez vous connecter ou utiliser un autre e-mail.</p>';
-                } else {
-                    $registered = $userModel->signup($email, $password);
-                    if ($registered) {
-                        // Inscription réussie, connectez l'utilisateur automatiquement
-                        $_SESSION['user'] = $email;
-                        header('Location: index.php');
-                        exit;
-                    } else {
-                        $message = '<p style="color: red;">Erreur lors de l\'inscription. Veuillez réessayer.</p>';
-                    }
-                }
-            } else {
-                // Connexion (action par défaut si non spécifié ou si 'login')
-                $loggedInUser = $userModel->login($email, $password);
-                if ($loggedInUser) {
-                    $_SESSION['user'] = $loggedInUser; // Stocke l'email de l'utilisateur dans la session
-                    header('Location: index.php'); // Redirige vers la page d'accueil
-                    exit;
-                } else {
-                    $message = '<p style="color: red;">Identifiants incorrects. Veuillez réessayer.</p>';
-                }
-            }
-        } catch (Throwable $th) {
-            // Capture les erreurs d'instanciation de UserModel (ex: problème de connexion à la DB)
-            error_log("Erreur critique dans login.php: " . $th->getMessage());
-            $message = '<p style="color: red;">Une erreur est survenue. Veuillez réessayer plus tard.</p>';
+            // Lie les paramètres aux valeurs, en spécifiant le type de données (PDO::PARAM_STR pour chaîne).
+            $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+            $stmt->bindParam(':password', $hashedPassword, PDO::PARAM_STR);
+            // Debogue
+            var_dump($stmt->queryString); 
+            // Exécute la requête préparée.
+            // Si l'exécution réussit, execute() renvoie true. Sinon, false (si non géré par exception)
+            // ou une exception si PDO::ERRMODE_EXCEPTION est activé (ce qui est le cas).
+            return $stmt->execute();
+
+
+        } catch (PDOException $e) {
+            // En cas d'erreur lors de l'insertion (par exemple, un problème de contrainte UNIQUE,
+            // ou une colonne manquante), l'exception est capturée ici.
+            // Il est crucial de logguer cette erreur pour le débogage.
+            error_log("Erreur PDO lors de l'enregistrement de l'utilisateur: " . $e->getMessage());
+            // Pour l'utilisateur, on renvoie false pour indiquer l'échec.
+            return false;
         }
     }
 }
 ?>
-
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SnapCat - Connexion</title>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .login-container { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); width: 100%; max-width: 400px; text-align: center; }
-        h2 { color: #333; margin-bottom: 20px; }
-        .form-group { margin-bottom: 15px; text-align: left; }
-        label { display: block; margin-bottom: 5px; color: #555; }
-        input[type="email"], input[type="password"] { width: calc(100% - 22px); padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        .btn-group { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
-        button { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; flex-grow: 1; }
-        .btn-login { background-color: #007bff; color: white; }
-        .btn-login:hover { background-color: #0056b3; }
-        .btn-signup { background-color: #28a745; color: white; }
-        .btn-signup:hover { background-color: #218838; }
-        .message { margin-top: 15px; font-weight: bold; }
-        .message p { margin: 0; }
-    </style>
-</head>
-<body>
-    <div class="login-container">
-        <h2>Connexion à SnapCat</h2>
-        <div class="message">
-            <?php echo $message; ?>
-        </div>
-        <form action="login.php" method="POST">
-            <div class="form-group">
-                <label for="email">Adresse e-mail :</label>
-                <input type="email" id="email" name="email" required autocomplete="username">
-            </div>
-            <div class="form-group">
-                <label for="password">Mot de passe :</label>
-                <input type="password" id="password" name="password" required autocomplete="current-password">
-            </div>
-            <div class="btn-group">
-                <button type="submit" name="action" value="login" class="btn-login">Se connecter</button>
-                <button type="submit" name="action" value="signup" class="btn-signup">S'inscrire</button>
-            </div>
-        </form>
-    </div>
-</body>
-</html>

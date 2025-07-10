@@ -1,0 +1,35 @@
+# Exemple simplifié de docker-compose.yml
+version: '3.8'
+
+services:
+  # Ton service PHP/Apache (par exemple)
+  app:
+    build: .
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - db # Dépend du service 'db'
+    environment:
+      # Si tu voulais passer les variables d'environnement (optionnel, mais bonne pratique)
+      MYSQL_HOST: db
+      MYSQL_DATABASE: snapcatdb
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+
+  # Ton service de base de données MySQL
+  db:
+    image: mysql:8.0 # Ou une autre version de MySQL
+    environment:
+      MYSQL_ROOT_PASSWORD: root # Mot de passe root
+      MYSQL_DATABASE: snapcatdb  # Nom de la base de données
+      MYSQL_USER: root        # Utilisateur (pour la connexion de l'app)
+      MYSQL_PASSWORD: root    # Mot de passe (pour la connexion de l'app)
+    # ports: # Généralement pas nécessaire d'exposer le port de la DB en production
+    #   - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql # Pour persister les données de la base de données
+
+volumes:
+  db_data:

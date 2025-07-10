@@ -1,6 +1,5 @@
 <?php
 require_once 'db.php';
-require_once 'UserModel.php'; 
 
 session_start(); // Démarre la session
 
@@ -29,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = '<p style="color: red;">L\'adresse e-mail n\'est pas valide.</p>';
     } else {
         try {
-            $userModel = new UserModel($conn);
+            $userModel = new UserModel( $email);
 
             // Vérifier si c'est une demande d'inscription (signup) ou de connexion (login)
             if (isset($_POST['action']) && $_POST['action'] === 'signup') {
@@ -72,43 +71,101 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SnapCat - Connexion</title>
+    <title>Connexion ou Inscription</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .login-container { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); width: 100%; max-width: 400px; text-align: center; }
-        h2 { color: #333; margin-bottom: 20px; }
-        .form-group { margin-bottom: 15px; text-align: left; }
-        label { display: block; margin-bottom: 5px; color: #555; }
-        input[type="email"], input[type="password"] { width: calc(100% - 22px); padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        .btn-group { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
-        button { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; flex-grow: 1; }
-        .btn-login { background-color: #007bff; color: white; }
-        .btn-login:hover { background-color: #0056b3; }
-        .btn-signup { background-color: #28a745; color: white; }
-        .btn-signup:hover { background-color: #218838; }
-        .message { margin-top: 15px; font-weight: bold; }
-        .message p { margin: 0; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .message {
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .switch-form {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        .switch-form a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .switch-form a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <h2>Connexion à SnapCat</h2>
-        <div class="message">
-            <?php echo $message; ?>
-        </div>
+    <div class="container">
+        <h2>Connexion / Inscription</h2>
+
+        <?php if (!empty($message)): ?>
+            <div class="message">
+                <?php echo $message; ?>
+            </div>
+        <?php endif; ?>
+
         <form action="login.php" method="POST">
             <div class="form-group">
-                <label for="email">Adresse e-mail :</label>
-                <input type="email" id="email" name="email" required autocomplete="username">
+                <label for="email">Email :</label>
+                <input type="email" id="email" name="email" required autocomplete="email">
             </div>
             <div class="form-group">
                 <label for="password">Mot de passe :</label>
                 <input type="password" id="password" name="password" required autocomplete="current-password">
             </div>
-            <div class="btn-group">
-                <button type="submit" name="action" value="login" class="btn-login">Se connecter</button>
-                <button type="submit" name="action" value="signup" class="btn-signup">S'inscrire</button>
-            </div>
+
+            <button type="submit" name="action" value="login">Se connecter</button>
+            <button type="submit" name="action" value="signup">S'inscrire</button>
         </form>
     </div>
 </body>

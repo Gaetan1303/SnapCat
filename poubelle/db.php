@@ -2,11 +2,13 @@
 // Détection automatique de l'environnement
 // Ces variables sont lues depuis les variables d'environnement Docker Compose
 // ou utilisent des valeurs par défaut si elles ne sont pas définies.
+// Détection automatique de l'environnement
+// Ces variables sont lues depuis les variables d'environnement Docker Compose
+// ou utilisent des valeurs par défaut si elles ne sont pas définies.
 $servername =  '127.0.0.1';
 $username = 'root';
 $password =  'root';
 $dbname =  'snapcatdb';
-
 $conn = null; // Initialise la variable de connexion à null
 
 try {

@@ -10,19 +10,17 @@ if (!isset($_SESSION['users'])) {
     exit;
 }
 
-// Inclusion de la classe ChatModel et db.php
-require_once 'db.php'; // Pour que $conn soit disponible
+// Inclusion de la classe ChatModel
+// Assurez-vous que le chemin est correct en fonction de l'emplacement de ChatModel.php
+// Par exemple, si ChatModel.php est dans un sous-dossier 'modeles': require_once 'modeles/ChatModel.php';
 require_once 'ChatModel.php';
 
 // Instanciation du modèle de chat pour interagir avec la base de données
 try {
-    // --- MODIFICATION ICI : Passer l'objet $conn au constructeur de ChatModel ---
-    if ($conn instanceof PDO) { // Vérifie que $conn est bien un objet PDO
-        $chatModel = new ChatModel($conn);
-    } else {
-        throw new Exception("Connexion à la base de données non valide.");
-    }
-} catch (Exception $e) { // Capturer l'exception si la connexion ou la création de table échoue
+    $chatModel = new ChatModel();
+} catch (PDOException $e) {
+    // Si la connexion échoue (généralement déjà gérée dans le constructeur de ChatModel)
+    // Affichez un message d'erreur et terminez l'exécution
     error_log("Erreur critique lors de l'instanciation de ChatModel: " . $e->getMessage());
     die("Désolé, une erreur est survenue. Veuillez réessayer plus tard.");
 }
@@ -103,7 +101,7 @@ $chats = $chatModel->getAllChatProfiles();
             </div>
             <div>
                 <label for="numero_puce">Numéro de puce :</label>
-                <input type="text" id="numero_puce" name="numero_puce">
+                <inpu-t type="text" id="numero_puce" name="numero_puce">
             </div>
             <div>
                 <label for="age">Âge :</label>
@@ -151,7 +149,7 @@ $chats = $chatModel->getAllChatProfiles();
                     <p><strong>Localisation :</strong> <?php echo htmlspecialchars($chat['localisation'] ?? 'N/A'); ?></p>
                     <p><strong>Description :</strong> <?php echo nl2br(htmlspecialchars($chat['description'] ?? 'N/A')); ?></p>
                     <p><strong>Intérêts :</strong> <?php echo htmlspecialchars($chat['interets'] ?? 'N/A'); ?></p>
-                    <p><strong>Caractéristiques :</strong> <?php htmlspecialchars($chat['caracteristiques'] ?? 'N/A'); ?></p>
+                    <p><strong>Caractéristiques :</strong> <?php echo htmlspecialchars($chat['caracteristiques'] ?? 'N/A'); ?></p>
                     <?php if (!empty($chat['photo'])): ?>
                         <p><img src="<?php echo htmlspecialchars($chat['photo']); ?>" alt="Photo de <?php echo htmlspecialchars($chat['nom']); ?>" style="max-width: 150px; height: auto;"></p>
                     <?php endif; ?>

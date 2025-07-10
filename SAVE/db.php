@@ -11,10 +11,9 @@
 $username = 'root';
 $password =  'root'; // Correspond à MYSQL_ROOT_PASSWORD dans docker-compose.yml
 $dbname =  'snapcatdb'; // Correspond à MYSQL_DATABASE dans docker-compose.yml
-// --- MODIFICATION ICI : 'db' au lieu de '127.0.0.1' ---
 $servername = '127.0.0.1';
 $conn = null; // Initialise la variable de connexion à null
-// echo "mysql:host=$servername;dbname=$dbname;charset=utf8mb4"; // Ligne de débogage, peut être supprimée
+// echo "mysql:host=$servername;dbname=$dbname;charset=utf8mb4";
 try {
     $conn = new PDO("mysql:host=$servername;dbname=$dbname;charset=utf8mb4", $username, $password, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,

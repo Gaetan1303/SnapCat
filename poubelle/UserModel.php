@@ -1,6 +1,4 @@
 <?php
-require_once 'db.php';
-require_once 'UserModel.php'; 
 
 session_start(); // Démarre la session
 
@@ -29,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = '<p style="color: red;">L\'adresse e-mail n\'est pas valide.</p>';
     } else {
         try {
-            $userModel = new UserModel($conn);
+            $userModel = new UserModel();
 
             // Vérifier si c'est une demande d'inscription (signup) ou de connexion (login)
             if (isset($_POST['action']) && $_POST['action'] === 'signup') {

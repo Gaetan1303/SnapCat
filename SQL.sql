@@ -1,12 +1,30 @@
--- Table pour les utilisateurs (mise à jour avec la colonne 'role')
-CREATE TABLE users (
+-- Création de la base de données
+CREATE DATABASE IF NOT EXISTS snapcatdb;
+-- Sélectionner la base de données
+USE snapcatdb;
+-- Création de l'utilisateur et définition des privilèges
+CREATE USER IF NOT EXISTS 'snapcatuser'@'127.0.0.1' IDENTIFIED BY 'snapcatpass';
+GRANT ALL PRIVILEGES ON snapcatdb.* TO 'snapcatuser'@'127.0.0.1';
+-- Actualiser les privilèges
+FLUSH PRIVILEGES;
+
+-- Création de la table "users"
+CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     Nom VARCHAR(50) NOT NULL UNIQUE,
     Email VARCHAR(100) NOT NULL UNIQUE,
     Mot_de_passe VARCHAR(255) NOT NULL,
     photo_de_profil VARCHAR(255), -- chemin de l'image de profil
-    role ENUM('user', 'administrateur') DEFAULT 'user' NOT NULL -- Ajout de la colonne 'role'
+    role ENUM('user', 'administrateur') DEFAULT 'user' NOT NULL -- Rôle par défaut
 );
+USE snapcatdb;
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 
 -- Table pour les messages (snapcat)
 CREATE TABLE snapcat (
