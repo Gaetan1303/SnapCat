@@ -1,23 +1,13 @@
 <?php
-// index.php - Page d'accueil dynamique Snapcat (inspirée de Vetcare)
+// index.php - Page d'accueil dynamique Snapcat
 
 session_start(); // Démarre la session
 
 // --- DÉBOGAGE TEMPORAIRE : À RETIRER EN PRODUCTION ---
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// ini_set('display_errors', 1);
+// ini_set('display_startup_errors', 1);
+// error_reporting(E_ALL);
 // -----------------------------------------------------
-
-// Si l'utilisateur est déjà connecté, le redirige vers le tableau de bord principal
-// On garde cette logique si tu veux que la page main.php soit le vrai "dashboard"
-// Si tu veux que index.php soit la page d'accueil même connecté, commente cette partie.
-/*
-if (isset($_SESSION['user_id'])) {
-    header('Location: main.php');
-    exit;
-}
-*/
 
 // Inclut le fichier de connexion à la base de données.
 require_once 'bd.php'; // Assurez-vous que c'est bien 'bd.php' ou 'db.php'
@@ -37,10 +27,22 @@ try {
     die("Désolé, une erreur est survenue lors du chargement des données. Veuillez réessayer plus tard.");
 }
 
+// --- LOGIQUE POUR LE CARROUSEL DE DÉCOUVERTE ---
+//$cats = [];
+//try {
+    // Si l'utilisateur est connecté, on pourrait vouloir lui montrer des chats pertinents
+    // ou tous les chats SAUF les siens. Pour l'instant, on prend tous les chats.
+    // Adaptez cette requête selon votre logique de "découverte".
+  //  $cats = $chatModel->getAllCatsForCarousel(null); // Récupère tous les chats
+
+//} catch (Exception $e) {
+  //  error_log("Erreur lors du chargement des chats pour le carrousel: " . $e->getMessage());
+    // On ne fait pas mourir le script, mais on laisse $cats vide
+//}
 
 
 $message = ''; // Variable pour stocker les messages de succès ou d'erreur
-$message_type = ''; // 'success' ou 'error'
+$message_type = ''; // 'success' ou 'error' ou 'info'
 
 // Gérer les messages de redirection (après ajout, modification, connexion, inscription, déconnexion)
 if (isset($_GET['status'])) {
@@ -74,7 +76,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['like']) || isset($_P
         $chat_id_interact = filter_input(INPUT_POST, 'chat_id', FILTER_SANITIZE_NUMBER_INT);
         if ($chat_id_interact) {
             // Dans une application réelle, vous stockeriez ces actions dans une table `user_interactions`
-            // $chat_name_interact = htmlspecialchars($chatModel->getCatProfileById((int)$chat_id_interact, $_SESSION['user_id'])['nom'] ?? 'ce chat');
             // Ou simplement pour l'affichage :
             $chat_name_obj = $chatModel->getCatProfileById((int)$chat_id_interact, 0); // User_id 0 pour ne pas filtrer par propriétaire
             $chat_name_interact = htmlspecialchars($chat_name_obj['nom'] ?? 'ce chat');
@@ -521,7 +522,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['like']) || isset($_P
     <section id="about" class="section-padding bg-white">
         <div class="container flex flex-col md:flex-row items-center gap-10">
             <div class="md:w-1/2">
-                <img src="https://images.pushsquare.com/734bbdbaccad1/1280x720.jpg" alt="À propos de nous" class="about-us-img w-full h-auto">
+                <img src="https://images.pushsquare.com/734bbdbaccad1/1280x720.jpg" alt="Un chat curieux observant" class="about-us-img w-full h-auto">
             </div>
             <div class="md:w-1/2 text-left">
                 <h2 class="section-heading text-left">À Propos de <span>Nous</span></h2>
@@ -547,7 +548,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['like']) || isset($_P
                             <?php if (!empty($chat['photo'])): ?>
                                 <img src="<?php echo htmlspecialchars($chat['photo']); ?>" alt="Photo de <?php echo htmlspecialchars($chat['nom']); ?>">
                             <?php else: ?>
-                                <img src="https://placehold.co/150x150/e2e8f0/64748b?text=Pas+de+Photo" alt="Pas de Photo" class="w-24 h-24 object-cover rounded-full">
+                                <img src="https://placehold.co/150x150/e2e8f0/64748b?text=Pas+de+Photo" alt="Pas de Photo disponible" class="w-24 h-24 object-cover rounded-full">
                             <?php endif; ?>
                             <h3><?php echo htmlspecialchars($chat['nom']); ?></h3>
                             <p><strong>Âge :</strong> <?php echo htmlspecialchars($chat['age'] ?? 'N/A'); ?> ans</p>
@@ -570,10 +571,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['like']) || isset($_P
                             <button type="submit" name="like" class="like-btn"><i class="fas fa-heart"></i> J'aime !</button>
                         </form>
                     </div>
+                    <p class="text-gray-700 text-lg mt-6">
+                        Envie d'ajouter votre propre compagnon ? <a href="add_cat.php" class="text-blue-700 font-bold hover:underline">Ajoutez un chat maintenant !</a>
+                    </p>
                 <?php else: ?>
                     <p class="text-gray-700 text-lg">
                         <a href="login.php" class="text-blue-700 font-bold hover:underline">Connectez-vous</a> ou
-                        <a href="register.php" class="text-blue-700 font-bold hover:underline">inscrivez-vous</a> pour découvrir plus de chats et interagir !
+                        <a href="register.php" class="text-blue-700 font-bold hover:underline">inscrivez-vous</a> pour découvrir plus de chats, interagir, et ajouter le vôtre !
                     </p>
                 <?php endif; ?>
             <?php else: ?>
@@ -581,7 +585,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['like']) || isset($_P
                     Aucun profil de chat disponible pour la découverte pour le moment.
                     <br>
                     <?php if (isset($_SESSION['user_id'])): ?>
-                        <a href="main.php" class="text-blue-700 font-bold hover:underline">Ajoutez-en un via votre tableau de bord !</a>
+                        Soyez le premier ! <a href="add_cat.php" class="text-blue-700 font-bold hover:underline">Ajoutez votre chat maintenant !</a>
                     <?php else: ?>
                         <a href="register.php" class="text-blue-700 font-bold hover:underline">Créez un compte</a> pour commencer à ajouter des profils.
                     <?php endif; ?>
@@ -633,19 +637,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['like']) || isset($_P
             <h2 class="section-heading">Notre <span>Équipe</span></h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="team-member-card">
-                    <img src="https://placehold.co/150x150/f0f0f0/333333/webp?text=John" alt="Dr. John Doe">
+                    <img src="https://placehold.co/150x150/f0f0f0/333333/webp?text=John" alt="Portrait de Dr. John Doe, vétérinaire en chef" loading="lazy">
                     <h3>Dr. John Doe</h3>
                     <p>Vétérinaire Chef</p>
                     <p class="text-sm text-gray-600">Expert en comportement félin et nutrition.</p>
                 </div>
                 <div class="team-member-card">
-                    <img src="https://placehold.co/150x150/f0f0f0/333333/webp?text=Jane" alt="Dr. Jane Smith">
+                    <img src="https://placehold.co/150x150/f0f0f0/333333/webp?text=Jane" alt="Portrait de Dr. Jane Smith, développeuse en chef" loading="lazy">
                     <h3>Dr. Jane Smith</h3>
                     <p>Développeuse en chef</p>
                     <p class="text-sm text-gray-600">Architecte de la plateforme Snapcat.</p>
                 </div>
                 <div class="team-member-card">
-                    <img src="https://placehold.co/150x150/f0f0f0/333333/webp?text=Mike" alt="Mike Johnson">
+                    <img src="https://placehold.co/150x150/f0f0f0/333333/webp?text=Mike" alt="Portrait de Mike Johnson, responsable communauté" loading="lazy">
                     <h3>Mike Johnson</h3>
                     <p>Responsable Communauté</p>
                     <p class="text-sm text-gray-600">Anime la communauté et organise les événements.</p>
@@ -688,8 +692,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['like']) || isset($_P
                     <p class="mb-2"><i class="fas fa-phone-alt text-blue-500 mr-2"></i> +33 781 95 53 24</p>
                     <p class="mb-2"><i class="fas fa-envelope text-blue-500 mr-2"></i> contact@snapcat.com</p>
                     <p class="mb-4"><i class="fas fa-clock text-blue-500 mr-2"></i> Lun - Ven: 9h00 - 18h00</p>
-                    <div class="map-placeholder bg-gray-300 h-64 rounded-lg">
-                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2886.8476686234753!2d1.4360646123075336!3d43.651337570981624!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x12aea54c6789263b%3A0xc0ed9f8a653d52b3!2s272%20Rte%20de%20Launaguet%2C%2031200%20Toulouse!5e0!3m2!1sfr!2sfr!4v1752234611970!5m2!1sfr!2sfr" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    <div class="map-placeholder bg-gray-300 h-64 rounded-lg overflow-hidden">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2888.7525287955523!2d1.4295964155829916!3d43.64010897912111!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x12a969df2d2b5123%3A0x33e89c31b8d2a632!2s272%20Rte%20de%20Launaguet%2C%2031200%20Toulouse!5e0!3m2!1sfr!2sfr!4v1678912345678!5m2!1sfr!2sfr" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                     </div>
                 </div>
                 <div>
@@ -705,7 +709,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['like']) || isset($_P
                             <input type="text" placeholder="Sujet" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div>
-                            <textarea placeholder="Votre Message" rows="5" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                            <textarea placeholder="Votre Message" rows="5" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:shadow-outline"></textarea>
                         </div>
                         <button type="submit" class="btn-cta w-full py-3">Envoyer le Message</button>
                     </form>
@@ -725,14 +729,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['like']) || isset($_P
                 <a href="#contact">Contact</a>
             </div>
             <div class="social-icons mt-4 md:mt-0">
-                <a href="#"><i class="fab fa-facebook-f"></i></a>
-                <a href="#"><i class="fab fa-twitter"></i></a>
-                <a href="#"><i class="fab fa-instagram"></i></a>
-                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
             </div>
         </div>
         <div class="text-center mt-8 text-gray-400">
-            &copy; <?php echo date('Y'); ?> Snapcat. Tous droits réservés.
+            © <?php echo date('Y'); ?> Snapcat. Tous droits réservés.
         </div>
     </footer>
 
@@ -745,6 +749,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['like']) || isset($_P
             carouselItems.forEach((item, i) => {
                 if (i === index) {
                     item.classList.add('active');
+                    // Assurez-vous de mettre à jour tous les inputs cachés pour les formulaires "like" et "dislike"
                     currentChatIdInputs.forEach(input => {
                         input.value = item.dataset.chatId;
                     });
@@ -754,60 +759,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['like']) || isset($_P
             });
         }
 
-        // Initialize carousel
+        // Fonction pour passer au chat suivant
+        function nextSlide() {
+            currentIndex = (currentIndex + 1) % carouselItems.length;
+            showSlide(currentIndex);
+        }
+
+        // Ajoutez des écouteurs d'événements aux formulaires de "like" et "dislike"
+        // pour avancer le carrousel après l'interaction (simulée ici)
+        document.querySelectorAll('.interact-form').forEach(form => {
+            form.addEventListener('submit', function(event) {
+                // Empêche le rechargement de la page si vous voulez un comportement AJAX futur
+                // event.preventDefault();
+
+                // Simule l'avancement du carrousel après l'interaction
+                if (carouselItems.length > 1) { // Avance seulement s'il y a plus d'un chat
+                    // Petite astuce pour que le message s'affiche AVANT le changement de slide visuel
+                    setTimeout(() => {
+                        nextSlide();
+                    }, 100); // Court délai pour laisser le temps au message de s'afficher
+
+                    // Ici, si vous utilisiez AJAX, vous feriez votre requête puis appelleriez nextSlide dans le .then()
+                }
+                // Si la page se recharge (comportement par défaut), la logique PHP gérera le message et le carrousel sera réinitialisé au premier élément
+            });
+        });
+
+
+        // Initialiser le carrousel au chargement
         if (carouselItems.length > 0) {
             showSlide(currentIndex);
         } else {
-            const carouselControls = document.querySelector('.carousel-controls');
-            if (carouselControls) {
-                carouselControls.style.display = 'none'; // Hide controls if no chats
+            console.log("Aucun élément dans le carrousel à afficher.");
+            // Gérer visuellement l'absence d'éléments si nécessaire
+            const carouselContainer = document.querySelector('.carousel-container');
+            if (carouselContainer) {
+                carouselContainer.innerHTML = '<p class="text-gray-700 text-lg p-5">Pas de chats à afficher pour le moment.</p>';
+                carouselContainer.style.height = 'auto'; // Ajuste la hauteur si vide
+                carouselContainer.style.boxShadow = 'none'; // Pas d'ombre si vide
+                carouselContainer.style.backgroundColor = 'transparent'; // Pas de fond si vide
             }
         }
-
-        // Add event listeners for like/dislike buttons
-        document.querySelectorAll('.carousel-controls button').forEach(button => {
-            button.addEventListener('click', (event) => {
-                event.preventDefault(); // Prevent default form submission
-
-                const form = event.target.closest('form');
-                
-                // Submit the form
-                form.submit();
-
-                // Advance to the next slide
-                if (carouselItems.length > 1) { // Only advance if more than one chat
-                    currentIndex = (currentIndex + 1) % carouselItems.length;
-                    // Small delay to allow message to display before next slide appears
-                    setTimeout(() => {
-                         showSlide(currentIndex);
-                         // Clear the message box after showing the next slide (optional, or handle server-side)
-                         // const messageDiv = document.querySelector('.message-box');
-                         // if (messageDiv) messageDiv.innerHTML = '';
-                    }, 500); // Adjust delay as needed
-                }
-            });
-        });
-
-        // Smooth scroll for internal links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
-
-        // Dynamic header background on scroll for a sticky effect (optional)
-        window.addEventListener('scroll', function() {
-            const headerMain = document.querySelector('.header-main');
-            if (window.scrollY > 50) { // Adjust scroll threshold
-                headerMain.classList.add('fixed', 'top-0', 'left-0', 'right-0', 'z-50', 'shadow-md');
-            } else {
-                headerMain.classList.remove('fixed', 'top-0', 'left-0', 'right-0', 'z-50', 'shadow-md');
-            }
-        });
-
     </script>
 </body>
 </html>
