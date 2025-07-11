@@ -1,0 +1,96 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>SnapCat - Accueil</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        .chat-profile { border: 1px solid #eee; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
+        .chat-profile h3 { margin-top: 0; }
+        form div { margin-bottom: 10px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="number"], textarea, select { width: calc(100% - 22px); padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .logout-btn { float: right; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Bienvenue sur SnapCats, <?php echo htmlspecialchars($_SESSION['users']); ?>!</h2>
+        <a href="logout.php" class="logout-btn">Déconnexion</a>
+
+        <?php echo $message; // Affiche les messages de succès ou d'erreur ?>
+
+        <h3>Ajouter un nouveau profil de chat</h3>
+        <form action="index.php" method="POST">
+            <div>
+                <label for="nom">Nom du chat * :</label>
+                <input type="text" id="nom" name="nom" required>
+            </div>
+            <div>
+                <label for="numero_puce">Numéro de puce :</label>
+                <input type="text" id="numero_puce" name="numero_puce">
+            </div>
+            <div>
+                <label for="age">Âge :</label>
+                <input type="number" id="age" name="age" min="0">
+            </div>
+            <div>
+                <label for="sexe">Sexe :</label>
+                <select id="sexe" name="sexe">
+                    <option value="">Sélectionner</option>
+                    <option value="Mâle">Mâle</option>
+                    <option value="Femelle">Femelle</option>
+                </select>
+            </div>
+            <div>
+                <label for="description">Description :</label>
+                <textarea id="description" name="description" rows="3"></textarea>
+            </div>
+            <div>
+                <label for="localisation">Localisation :</label>
+                <input type="text" id="localisation" name="localisation">
+            </div>
+            <div>
+                <label for="interets">Intérêts (séparés par des virgules) :</label>
+                <input type="text" id="interets" name="interets">
+            </div>
+            <div>
+                <label for="caracteristiques">Caractéristiques (séparées par des virgules) :</label>
+                <input type="text" id="caracteristiques" name="caracteristiques">
+            </div>
+            <div>
+                <button type="submit" name="add_chat">Ajouter le profil du chat</button>
+            </div>
+        </form>
+
+        <hr>
+
+        <h3>Tous les profils de chats</h3>
+        <?php if (!empty($chats)): ?>
+            <?php foreach ($chats as $chat): ?>
+                <div class="chat-profile">
+                    <h3><?php echo htmlspecialchars($chat['nom']); ?> (ID: <?php echo htmlspecialchars($chat['id']); ?>)</h3>
+                    <p><strong>Numéro de puce :</strong> <?php echo htmlspecialchars($chat['numero_puce'] ?? 'N/A'); ?></p>
+                    <p><strong>Âge :</strong> <?php echo htmlspecialchars($chat['age'] ?? 'N/A'); ?> ans</p>
+                    <p><strong>Sexe :</strong> <?php echo htmlspecialchars($chat['sexe'] ?? 'N/A'); ?></p>
+                    <p><strong>Localisation :</strong> <?php echo htmlspecialchars($chat['localisation'] ?? 'N/A'); ?></p>
+                    <p><strong>Description :</strong> <?php echo nl2br(htmlspecialchars($chat['description'] ?? 'N/A')); ?></p>
+                    <p><strong>Intérêts :</strong> <?php echo htmlspecialchars($chat['interets'] ?? 'N/A'); ?></p>
+                    <p><strong>Caractéristiques :</strong> <?php htmlspecialchars($chat['caracteristiques'] ?? 'N/A'); ?></p>
+                    <?php if (!empty($chat['photo'])): ?>
+                        <p><img src="<?php echo htmlspecialchars($chat['photo']); ?>" alt="Photo de <?php echo htmlspecialchars($chat['nom']); ?>" style="max-width: 150px; height: auto;"></p>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <p>Aucun profil de chat trouvé pour le moment. Ajoutez-en un !</p>
+        <?php endif; ?>
+    </div>
+</body>
+</html>

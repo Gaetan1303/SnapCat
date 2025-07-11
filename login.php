@@ -7,7 +7,7 @@ session_start(); // Démarre la session PHP, doit être la première chose dans 
 require_once 'db.php';
 
 // Si l'utilisateur est déjà connecté (vérifié par $_SESSION['user_id']), redirige vers l'accueil.
-if (isset($_SESSION['users'])) {
+if (isset($_SESSION['user_id'])) {
     header('Location: index.php');
     exit;
 }
