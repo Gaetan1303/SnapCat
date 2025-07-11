@@ -114,4 +114,4 @@ $usernameValue = htmlspecialchars($_POST['username'] ?? ''); // Pour pré-rempli
     </div>
 </body>
 </html>
-?>
+
