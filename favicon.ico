@@ -1,0 +1,5 @@
+if ($_SERVER['REQUEST_URI'] == '/favicon.ico') {
+    header('Content-Type: image/x-icon');
+    readfile('chemin/vers/ton/favicon.ico');  // Remplace par le chemin réel du fichier
+    exit;
+}

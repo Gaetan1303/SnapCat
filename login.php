@@ -6,11 +6,15 @@ session_start(); // Démarre la session PHP, doit être la première chose dans 
 // Inclusion de la connexion à la base de données (définit $conn)
 require_once 'db.php';
 
-// Si l'utilisateur est déjà connecté (vérifié par $_SESSION['user_id']), redirige vers l'accueil.
-if (isset($_SESSION['user_id'])) {
-    header('Location: index.php');
-    exit;
-}
+if (!$_SESSION['users']['user_id'] != $loggedInUser["id"]) {
+     [
+        "user_id" => $loggedInUser["id"],
+        "username" => $loggedInUser['username'],
+        "email" => $loggedInUser['email']
+    ];
+    // Si l'utilisateur n'est pas authentifié, on le redirige vers la page de connexion
+    header('Location: index.php'); // Assurez-vous que login.php existe
+    exit;}
 
 // Inclusion de la classe UserModel pour les opérations liées aux utilisateurs.
 require_once 'UserModel.php';

@@ -4,12 +4,17 @@ require_once 'UserModel.php';
 
 session_start(); // Démarre la session
 
-// Si l'utilisateur est déjà connecté, redirigez-le vers la page d'accueil
-if (isset($_SESSION['user'])) {
-    header('Location: index.php');
+
+if (!isset($_SESSION['users']) || $_SESSION['users']['user_id'] != $loggedInUser["id"]) {
+    $_SESSION['users'] = [
+        "user_id" => $loggedInUser["id"],
+        "username" => $loggedInUser['username'],
+        "email" => $loggedInUser['email']
+    ];
+    // Si l'utilisateur n'est pas authentifié, on le redirige vers la page de connexion
+    header('Location: login.php'); // Assurez-vous que login.php existe
     exit;
 }
-
 // Inclusion de la classe UserModel
 // Assurez-vous que le chemin est correct (ex: 'UserModel.php' si dans le même dossier, ou 'models/UserModel.php')
 require_once 'UserModel.php';
